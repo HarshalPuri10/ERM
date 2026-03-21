@@ -1,0 +1,10 @@
+/* ── Global Styles ── */
+:root {
+  --primary: #0d6efd;
+  --bg-auth: #f0f4ff;
+}
+
+body {
+  background-color: var(--bg-auth);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}

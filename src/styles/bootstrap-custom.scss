@@ -1,0 +1,10 @@
+// src/styles/bootstrap-custom.scss
+
+// Step 1 — define font variable first
+$my-font: unquote("'Inter', system-ui, sans-serif");
+
+// Step 2 — pass it to Bootstrap
+@use "bootstrap/scss/bootstrap" with (
+  $border-radius: 0.75rem,
+  $font-family-base: $my-font
+);
