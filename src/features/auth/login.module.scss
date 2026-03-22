@@ -101,6 +101,10 @@
     pointer-events: none;
     z-index: 10;
   }
+
+  .input-icon-fa--error {
+    color: #e31b23;
+  }
 }
 
 /* ── INPUT ── */
@@ -121,6 +125,11 @@
   &--has-toggle {
     padding-right: 4rem !important;
   }
+
+  &--error {
+    border-color: #e31b23 !important;
+    color: #e31b23;
+  }
 }
 
 /* ── HELPER TEXT ── */
@@ -128,6 +137,20 @@
   font-size: 1.2rem;
   display: block;
   margin-top: 0.4rem;
+}
+
+.input-error {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding-left: 1.2rem;
+  font-size: 1.2rem;
+  color: #e31b23;
+
+  i {
+    font-size: 1.4rem;
+  }
 }
 
 /* ── OTP INPUTS ── */
@@ -175,6 +198,7 @@
 
 /* ── SUBMIT BUTTON ── */
 .submit-btn {
+  width: 50%;
   height: 4rem;
   padding: 0 3.2rem;
   margin-top: auto;

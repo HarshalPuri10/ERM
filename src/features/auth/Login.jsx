@@ -1,8 +1,20 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import styles from "./login.module.scss";
 import logo from "../../assets/login/logo.png";
 
 const OTP_LENGTH = 6;
+const ERROR_MESSAGES = {
+  sendCodeFailed:
+    "We couldn’t send the code to your email. Please check your email address or contact support.",
+  invalidEmail: "Please enter a valid email address.",
+  incorrectCode: "The code you entered is incorrect. Please try again.",
+  codeExpired: "This code has expired. Request a new one.",
+  verifyTrouble:
+    "We’re having trouble verifying your code. Please check your connection and try again.",
+  tooManyAttempts: "Too many incorrect attempts. Please request a new code.",
+  resendCooldown: "You can request a new code in 30 seconds. try again.",
+  enterCode: "Please enter the verification code.",
+};
 
 function Stepper({ activeStep }) {
   return (
@@ -21,6 +33,28 @@ function Stepper({ activeStep }) {
 
 function LoginCard({ onNext }) {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  const validateEmail = (value) => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return ERROR_MESSAGES.invalidEmail;
+    }
+    const isValid =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) && trimmed.length <= 254;
+    return isValid ? "" : ERROR_MESSAGES.invalidEmail;
+  };
+
+  const handleSubmit = () => {
+    const error = validateEmail(email);
+    if (error) {
+      setEmailError(error);
+      return;
+    }
+    setEmailError("");
+    onNext();
+  };
 
   return (
     <div className={styles["login-card"]}>
@@ -33,14 +67,41 @@ function LoginCard({ onNext }) {
       <div className="mb-4">
         <label className="form-label ps-3">Company Email Address</label>
         <div className={`position-relative ${styles["input-wrapper"]}`}>
-          <i className={`fa-solid fa-envelope ${styles["input-icon-fa"]}`}></i>
-          <input type="email" className={styles["custom-input"]} />
+          <i
+            className={`fa-solid fa-envelope ${styles["input-icon-fa"]} ${
+              emailError ? styles["input-icon-fa--error"] : ""
+            }`}
+          ></i>
+          <input
+            type="email"
+            className={`${styles["custom-input"]} ${
+              emailError ? styles["custom-input--error"] : ""
+            }`}
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailError) {
+                setEmailError("");
+              }
+            }}
+            placeholder="name@company.com"
+            aria-invalid={!!emailError}
+            aria-describedby={emailError ? "email-error" : "email-help"}
+          />
         </div>
-        <small
-          className={`ps-3 fst-italic text-secondary ${styles["helper-text"]}`}
-        >
-          A verification code will be sent to the provided email
-        </small>
+        {emailError ? (
+          <div className={styles["input-error"]} role="alert" id="email-error">
+            <i className="fa-solid fa-circle-exclamation"></i>
+            <span>{emailError}</span>
+          </div>
+        ) : (
+          <small
+            className={`ps-3 fst-italic text-secondary ${styles["helper-text"]}`}
+            id="email-help"
+          >
+            A verification code will be sent to the provided email
+          </small>
+        )}
       </div>
 
       {/* Password Field */}
@@ -73,7 +134,7 @@ function LoginCard({ onNext }) {
         </div>
       </div>
 
-      <button className={styles["submit-btn"]} onClick={onNext}>
+      <button className={styles["submit-btn"]} onClick={handleSubmit}>
         Send verification code
       </button>
     </div>
@@ -81,6 +142,80 @@ function LoginCard({ onNext }) {
 }
 
 function OtpCard({ onBack }) {
+  const [otp, setOtp] = useState(Array.from({ length: OTP_LENGTH }, () => ""));
+  const [otpError, setOtpError] = useState("");
+  const inputRefs = useRef([]);
+
+  const handleChange = (index, value) => {
+    const clean = value.replace(/\D/g, "");
+    if (!clean) {
+      setOtp((prev) => {
+        const next = [...prev];
+        next[index] = "";
+        return next;
+      });
+      return;
+    }
+
+    const digits = clean.split("");
+    setOtp((prev) => {
+      const next = [...prev];
+      let cursor = index;
+      digits.forEach((d) => {
+        if (cursor < OTP_LENGTH) {
+          next[cursor] = d;
+          cursor += 1;
+        }
+      });
+      if (cursor < OTP_LENGTH) {
+        inputRefs.current[cursor]?.focus();
+      }
+      return next;
+    });
+    if (otpError) {
+      setOtpError("");
+    }
+  };
+
+  const handleKeyDown = (index, event) => {
+    if (event.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (event) => {
+    event.preventDefault();
+    const text = event.clipboardData?.getData("text") || "";
+    const clean = text.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!clean) return;
+    const digits = clean.split("");
+    setOtp((prev) => {
+      const next = [...prev];
+      digits.forEach((d, i) => {
+        next[i] = d;
+      });
+      return next;
+    });
+    if (digits.length < OTP_LENGTH) {
+      inputRefs.current[digits.length]?.focus();
+    } else {
+      inputRefs.current[OTP_LENGTH - 1]?.focus();
+    }
+    if (otpError) {
+      setOtpError("");
+    }
+  };
+
+  const handleSubmit = () => {
+    const code = otp.join("");
+    if (code.length < OTP_LENGTH) {
+      setOtpError(ERROR_MESSAGES.enterCode);
+      return;
+    }
+    setOtpError("");
+    onBack();
+  };
+
   return (
     <div className={styles["login-card"]}>
       <h2>Verify your email address</h2>
@@ -88,7 +223,7 @@ function OtpCard({ onBack }) {
         We've sent a 6-digit code to your registered email
       </p>
 
-      <div className={styles["otp-inputs"]}>
+      <div className={styles["otp-inputs"]} onPaste={handlePaste}>
         {Array.from({ length: OTP_LENGTH }).map((_, index) => (
           <input
             key={index}
@@ -98,18 +233,30 @@ function OtpCard({ onBack }) {
             autoComplete={index === 0 ? "one-time-code" : "off"}
             className={styles["otp-input"]}
             aria-label={`OTP digit ${index + 1}`}
+            value={otp[index]}
+            onChange={(e) => handleChange(index, e.target.value)}
+            onKeyDown={(e) => handleKeyDown(index, e)}
+            ref={(el) => {
+              inputRefs.current[index] = el;
+            }}
           />
         ))}
       </div>
+      {otpError ? (
+        <div className={styles["input-error"]} role="alert">
+          <i className="fa-solid fa-circle-exclamation"></i>
+          <span>{otpError}</span>
+        </div>
+      ) : (
+        <div className={styles["resend-row"]}>
+          <span>Didn't get a code?</span>
+          <button type="button" className={styles["resend-btn"]}>
+            Resend
+          </button>
+        </div>
+      )}
 
-      <div className={styles["resend-row"]}>
-        <span>Didn't get a code?</span>
-        <button type="button" className={styles["resend-btn"]}>
-          Resend
-        </button>
-      </div>
-
-      <button className={styles["submit-btn"]} onClick={onBack}>
+      <button className={styles["submit-btn"]} onClick={handleSubmit}>
         Continue
       </button>
     </div>
