@@ -3,9 +3,9 @@ import Navbar from "../components/Navbar/Navbar";
 
 const PrivateLayout = () => {
   return (
-    <div className="min-vh-100 bg-light">
+    <div className="min-vh-100  ">
       <Navbar />
-      <main className="container py-4">
+      <main className="container-fluid">
         <Outlet />
       </main>
     </div>

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { authService } from "../../services/api";
-import styles from "./Auth.module.scss";
 
 const Register = () => {
   const { login } = useAuth();

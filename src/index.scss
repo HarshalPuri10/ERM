@@ -1,10 +1,20 @@
 /* ── Global Styles ── */
 :root {
-  --primary: #0d6efd;
+  --primary: #000000;
   --bg-auth: #f0f4ff;
 }
 
 body {
-  background-color: var(--bg-auth);
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: "Gilroy", "Segoe UI", system-ui, sans-serif;
+  font-size: 1.6rem; // = 16px
+}
+html {
+  font-size: 10px; // now 1rem = 10px
+}
+
+.form-label {
+  font-size: 1.8rem; // 14px
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 0.25rem;
 }
